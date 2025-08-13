@@ -79,6 +79,25 @@ async def process_password_reset(session: AsyncSession, email: str):
     print(f"Reset your password: {link}")
     return {"msg": "Password reset link sent"}
 
+async def reset_password_with_token(session: AsyncSession, token: str, new_password: str):
+    user_id = verify_token_and_get_user_id(token, "reset")
+    if not user_id: 
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+    stmt = select(User).where(User.id ==user_id)
+    result = await session.scalars(stmt)
+    user = result.first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User nto found")
+    
+    await change_password(session, user, new_password)
+    
+    return {"msg": "Password reset successful"}
+
+
+    
+    
+
 
     
 
