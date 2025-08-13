@@ -65,6 +65,21 @@ async def verify_email_token(session: AsyncSession, token: str):
     
     return {"msg": "Email verified successfully"}
 
+async def change_password(session: AsyncSession, user: User, new_password: str):
+    user.hashed_password = hash_password(new_password)
+    session.add(user)
+    await session.commit()
+    
+async def process_password_reset(session: AsyncSession, email: str):
+    user = await get_user_by_email(session, email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    token = create_password_reset_token(user.id)
+    link = f"http://localhost:8000/account/reset-password?token={token}"
+    print(f"Reset your password: {link}")
+    return {"msg": "Password reset link sent"}
+
+
     
 
 
